@@ -1,6 +1,7 @@
 # Generated delivery archives / 生成的交付压缩包
 dist/
 build/
+local-reference/
 
 # Python cache / Python 缓存
 __pycache__/
