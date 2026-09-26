@@ -1,0 +1,8 @@
+{
+  "name": "Launch",
+  "author": "Launch",
+  "color": [255, 64, 32],
+  "version": 7,
+  "osMinimalVer": [4, 0, 0],
+  "appMainFile": "main.py"
+}

@@ -1,0 +1,12 @@
+# Generated delivery archives / 生成的交付压缩包
+dist/
+build/
+
+# Python cache / Python 缓存
+__pycache__/
+*.py[cod]
+
+# Local diagnostics / 本机诊断日志
+diagnostics/
+*.log
+.DS_Store

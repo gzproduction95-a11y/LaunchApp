@@ -1,0 +1,21 @@
+name: LaunchApp Tests / LaunchApp 测试
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unit-tests:
+    name: Unit tests / 单元测试
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout / 检出代码
+        uses: actions/checkout@v4
+      - name: Set up Python / 配置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run Launch tests / 运行 Launch 测试
+        run: python -m unittest discover -s tests/launch -q
+      - name: Check whitespace / 检查空白字符
+        run: git diff --check
