@@ -29,8 +29,6 @@ def _slot_state(track, slot_index, slot, transport_running=True):
         clip = slot.clip if slot.has_clip else None
     except Exception:
         clip = None
-    if not transport_running:
-        return STOPPED if clip is not None else EMPTY
     try:
         triggered = bool(slot.is_triggered)
     except Exception:
@@ -39,6 +37,10 @@ def _slot_state(track, slot_index, slot, transport_running=True):
         fired_index = int(track.fired_slot_index)
     except Exception:
         fired_index = -1
+    if not transport_running:
+        if clip is None and (triggered or fired_index == slot_index):
+            return LAUNCH_QUEUED
+        return STOPPED if clip is not None else EMPTY
     try:
         recording = clip is not None and bool(clip.is_recording)
     except Exception:

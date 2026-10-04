@@ -177,6 +177,15 @@ class RemoteModelTests(unittest.TestCase):
         self.slot.is_triggered = True
         self.assertEqual(_slot_state(self.track, 0, self.slot), LAUNCH_QUEUED)
 
+    def test_empty_slot_triggered_during_count_in_is_queued_while_transport_stopped(self):
+        self.song.is_playing = False
+        self.slot.has_clip = False
+        self.slot.clip = None
+        self.slot.is_triggered = True
+
+        self.assertEqual(_slot_state(self.track, 0, self.slot, transport_running=False),
+                         LAUNCH_QUEUED)
+
     def test_invalid_track_action_is_ignored(self):
         apply_track_action(self.song, 0, 99)
         self.assertFalse(self.track.arm)

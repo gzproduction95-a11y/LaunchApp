@@ -29,7 +29,7 @@ NAVIGATION_HOME_MOVED = 0x4040FF
 def _cycle_gain(phase_beats, period_beats, minimum, maximum):
     cycle_phase = (float(phase_beats) % float(period_beats)) / float(period_beats)
     wave = (1.0 - sin(2.0 * pi * cycle_phase + pi / 2.0)) / 2.0
-    return int(minimum + (maximum - minimum) * wave + 0.5)
+    return float(minimum) + (float(maximum) - float(minimum)) * wave
 
 
 def _animation_gains(phase_beats, tempo=None):
@@ -48,16 +48,29 @@ def _track_rgb(track, gain):
     red = max(0, min(127, int(red)))
     green = max(0, min(127, int(green)))
     blue = max(0, min(127, int(blue)))
-    red = red * 255 // 127 * gain // 255
-    green = green * 255 // 127 * gain // 255
-    blue = blue * 255 // 127 * gain // 255
+    if float(gain) >= 255.0:
+        red = red * 255 // 127
+        green = green * 255 // 127
+        blue = blue * 255 // 127
+    else:
+        red = int(red * float(gain) / 127.0 + 0.5)
+        green = int(green * float(gain) / 127.0 + 0.5)
+        blue = int(blue * float(gain) / 127.0 + 0.5)
+    # Avoid a one-channel, one-count tail near black (most visibly red).
+    if max(red, green, blue) <= 1:
+        return 0
     return (red << 16) | (green << 8) | blue
 
 
 def _solid_rgb(color, gain):
-    red = ((color >> 16) & 0xFF) * gain // 255
-    green = ((color >> 8) & 0xFF) * gain // 255
-    blue = (color & 0xFF) * gain // 255
+    if float(gain) >= 255.0:
+        red = (color >> 16) & 0xFF
+        green = (color >> 8) & 0xFF
+        blue = color & 0xFF
+    else:
+        red = int(((color >> 16) & 0xFF) * float(gain) / 255.0 + 0.5)
+        green = int(((color >> 8) & 0xFF) * float(gain) / 255.0 + 0.5)
+        blue = int((color & 0xFF) * float(gain) / 255.0 + 0.5)
     return (red << 16) | (green << 8) | blue
 
 
@@ -194,3 +207,56 @@ def has_animated_state(page, tracks, slots, scenes=None):
             ):
                 return True
     return False
+
+
+def color_role_for_cell(page, row, column, track, slot, scene=None,
+                        flash=False, fixed_color=None):
+    """Stable visual identity for a cell, independent of its current RGB value."""
+    if page is True:
+        page = "track"
+    elif page is False:
+        page = "session"
+    row, column = int(row), int(column)
+    if fixed_color is not None:
+        return ("fixed", int(fixed_color))
+    if page == "scene":
+        scene = scene or {}
+        if not scene.get("valid", False):
+            return ("fixed", 0)
+        if column == 7:
+            return ("scene-active",) if scene.get("active", False) else ("fixed", 0x001000)
+        if column == 6:
+            return ("scene-stop",) if scene.get("stop_queued", False) else ("fixed", 0x100000)
+        return ("fixed", 0)
+    if page == "track":
+        if row < 4 or not track.get("valid", False):
+            return ("fixed", 0)
+        if row == 4:
+            return ("fixed", ARM_RED[0] if track.get("arm", False) else ARM_RED[1])
+        if row == 5:
+            return ("fixed", MUTE_YELLOW[1] if track.get("mute", False) else MUTE_YELLOW[0])
+        if row == 6:
+            return ("fixed", SOLO_BLUE[0] if track.get("solo", False) else SOLO_BLUE[1])
+        if row == 7:
+            return ("fixed", STOP_MAGENTA if track.get("active", False) else 0)
+        return ("fixed", 0)
+    if (not track.get("valid", False)
+            or (scene is not None and not scene.get("valid", False))):
+        return ("fixed", 0)
+    status = slot.get("status", EMPTY) if slot.get("valid", False) else EMPTY
+    if flash and page == "session" and status == EMPTY and not track.get("arm", False):
+        return ("fixed", 0xFFFFFF)
+    if status == RECORDING:
+        return ("recording", column)
+    if status == EMPTY:
+        return (("arm-empty", column) if track.get("arm", False)
+                else ("empty", column))
+    if status == STOPPED:
+        return ("stopped", column)
+    if status == PLAYING:
+        return ("playing", column)
+    if status == RECORD_END_QUEUED:
+        return ("record-end",)
+    if status in (STOP_QUEUED, LAUNCH_QUEUED):
+        return ("queued", column)
+    return ("fixed", 0)

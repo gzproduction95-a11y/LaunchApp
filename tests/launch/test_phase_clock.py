@@ -24,6 +24,20 @@ class MusicalPhaseClockTests(unittest.TestCase):
         self.assertAlmostEqual(clock.phase_at(5000), 0.25)
         self.assertAlmostEqual(clock.phase_at(5250), 0.75)
 
+    def test_stopped_ui_phase_can_continue_at_last_tempo(self):
+        clock = MusicalPhaseClock()
+        clock.update(phase_u14=2048, tempo=120.0, playing=False, now_ms=1000)
+        self.assertAlmostEqual(clock.phase_at(1500), 0.5)
+        self.assertAlmostEqual(clock.phase_at(1500, continue_when_stopped=True), 1.5)
+
+    def test_repeated_stopped_updates_preserve_continuous_ui_phase(self):
+        clock = MusicalPhaseClock()
+        clock.update(phase_u14=2048, tempo=120.0, playing=False, now_ms=1000)
+        self.assertAlmostEqual(clock.phase_at(1250, continue_when_stopped=True), 1.0)
+        clock.update(phase_u14=2048, tempo=120.0, playing=False, now_ms=1250)
+        self.assertAlmostEqual(clock.phase_at(1250, continue_when_stopped=True), 1.0)
+        self.assertAlmostEqual(clock.phase_at(1500, continue_when_stopped=True), 1.5)
+
     def test_phase_wraps_without_discontinuity(self):
         clock = MusicalPhaseClock()
         clock.update(phase_u14=16300, tempo=120.0, playing=True, now_ms=0)
