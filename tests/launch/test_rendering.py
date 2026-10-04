@@ -29,11 +29,14 @@ class RenderingTests(unittest.TestCase):
         self.slot = {"valid": True, "status": EMPTY}
 
     def render(self, row, phase=0, tempo=120, track=None, slot=None, page="track",
-               column=0, scene=None, flash=False):
+               column=0, scene=None, flash=False, arm_phase_beats=None,
+               queued_phase_beats=None):
         return color_for_cell(
             page, row, track if track is not None else self.track,
             slot if slot is not None else self.slot, phase, tempo,
             column=column, scene=scene, flash=flash,
+            arm_phase_beats=arm_phase_beats,
+            queued_phase_beats=queued_phase_beats,
         )
 
     def test_track_controls_use_requested_live_switch_polarity_and_colors(self):
@@ -72,6 +75,16 @@ class RenderingTests(unittest.TestCase):
         self.assertGreater(queued[1], queued[0])
         self.assertEqual(queued[0], queued[4])
 
+    def test_launch_queue_blinks_from_continuing_phase_while_transport_phase_is_frozen(self):
+        self.slot["status"] = LAUNCH_QUEUED
+        stopped_phase = 0.0
+        continuing_phase = 0.125
+        dark = self.render(0, phase=stopped_phase, page="session",
+                           queued_phase_beats=stopped_phase)
+        bright = self.render(0, phase=stopped_phase, page="session",
+                             queued_phase_beats=continuing_phase)
+        self.assertNotEqual(dark, bright)
+
     def test_armed_track_breathes_only_on_empty_slots_between_off_and_dim(self):
         self.track["arm"] = True
         self.slot["status"] = EMPTY
@@ -93,9 +106,31 @@ class RenderingTests(unittest.TestCase):
         self.assertEqual(samples[0], samples[2])
         self.assertNotEqual(samples[0], samples[1])
 
-    def test_recording_remains_red_and_queued_states_animate(self):
+    def test_arm_empty_mixed_track_color_never_leaves_a_red_only_tail(self):
+        from RemoteScripts.Launch.rendering import color_for_cell as host_color_for_cell
+
+        track = {"valid": True, "color": (127, 65, 3), "arm": True}
+        slot = {"valid": True, "status": EMPTY}
+        color = host_color_for_cell(
+            "session", 0, track, slot, 0.0, 120.0,
+            arm_phase_beats=0.092)
+        self.assertNotEqual(color, 0x010000)
+        self.assertEqual(color, 0)
+
+    def test_armed_empty_uses_fallback_phase_when_live_transport_is_stopped(self):
+        self.track["arm"] = True
+        self.slot["status"] = EMPTY
+        self.assertEqual(self.render(0, phase=0, page="session",
+                                    arm_phase_beats=0), 0)
+        self.assertGreater(self.render(0, phase=0, page="session",
+                                       arm_phase_beats=1), 0)
+
+    def test_recording_alternates_red_on_beat_and_track_color_offbeat(self):
         self.slot["status"] = RECORDING
-        self.assertEqual(self.render(0, phase=.2, tempo=120, page="session"), 0xFF0000)
+        self.assertEqual(self.render(0, phase=0, tempo=120, page="session"), 0xFF0000)
+        self.assertEqual(self.render(0, phase=.49, tempo=120, page="session"), 0xFF0000)
+        self.assertEqual(self.render(0, phase=.5, tempo=120, page="session"), 0x804020)
+        self.assertEqual(self.render(0, phase=1.0, tempo=120, page="session"), 0xFF0000)
         self.slot["status"] = RECORD_END_QUEUED
         self.assertNotEqual(self.render(0, phase=0, page="session"), self.render(0, phase=.25, page="session"))
         self.slot["status"] = STOP_QUEUED

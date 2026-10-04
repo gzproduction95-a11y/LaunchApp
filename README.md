@@ -1,79 +1,70 @@
 # LaunchApp
 
-中文｜English
+**An Ableton Live Session View controller for 203 Systems Mystrix Pro.** LaunchApp keeps its own app entry on Mystrix while Ableton Live handles control logic, display state, and RGB rendering on the computer.
 
-LaunchApp is a two-part Session View controller for **203 Systems Mystrix Pro** and **Ableton Live 12.4.6**. It contains a standalone MatrixOS 4.0 Python application for Mystrix and an Ableton MIDI Remote Script. The two parts communicate over USB MIDI SysEx and must always be installed as the same release.
+[简体中文](README.zh-CN.md) · [Releases](https://github.com/gzproduction95-a11y/LaunchApp/releases) · [Report a problem](https://github.com/gzproduction95-a11y/LaunchApp/issues)
 
-LaunchApp 是为 **203 Systems Mystrix Pro** 与 **Ableton Live 12.4.6** 制作的双端 Session View 控制器。它包含一个独立的 MatrixOS 4.0 Python App 和一个 Ableton MIDI Remote Script；两端通过 USB MIDI SysEx 通信，必须始终成套安装同一版本。
+## Project overview
 
-**Author / 作者：GZ_Beatz**
+LaunchApp connects a standalone MatrixOS Python App on Mystrix Pro to an Ableton Live Remote Script over USB MIDI. The controller forwards pad and Fn key events. The computer reads Live's Session state, decides what each control does, renders the 8×8 RGB display, and sends the resulting colours back to Mystrix.
 
-## Status / 当前状态
+The goal is to retain the familiar V1 playing experience while moving gesture handling, Live decisions, and lighting calculations to the computer.
 
-LaunchApp V1 has passed local automated tests and manual acceptance on Ableton Live 12.4.6 with Mystrix Pro hardware. The planned core functions are implemented and no material defects have been found so far. Future work starts from this V1 baseline. This repository never installs itself into Live, User Library, a Live Set, or a device.
+**Current release:** V2.2.2 · **Device:** 203 Systems Mystrix Pro · **Firmware:** MatrixOS 4.0 or newer · **DAW:** Ableton Live 12.4.6
 
-LaunchApp V1 已通过本地自动化测试，并已在 Ableton Live 12.4.6 与 Mystrix Pro 真机上完成人工验收。计划中的核心功能均已实现，目前暂未发现明显问题。之后的开发和更新都以 V1 为基线。本仓库不会自动安装、修改 Live、User Library、Live Set 或设备。
+V2.2.2 has passed the project’s 187 automated tests and a user-run Mystrix Pro / Live acceptance round. The initial armed-slot count-in indication and Fn page response were reported improved, with no obvious issue observed in that round. Hardware results depend on the computer, Live set, USB MIDI path, firmware build, and device.
 
-## What it does / 功能
+## Features
 
-- 8×8 Session grid with Track/Scene navigation and Live Session Highlight.
-- Track page: recording length, navigation, Arm, Mute, Solo, and immediate Track Stop.
-- Scene page: launch a full Live Scene and stop only the active clips in a selected Scene row at the end of the current bar.
-- Live-synchronised LED states: Track colours, clip state, recording, queues, BPM, transport state, and a shared musical animation phase.
-- Fn gestures: one press switches between Session and Track pages; a double press within 450 ms, with no intervening pad press, opens the Scene page.
+- 8×8 Session grid with Track and Scene navigation.
+- Clip launch, queued stop, recording, and state feedback synchronized to Live.
+- Track page controls for recording length, Arm, Mute, Solo, navigation, and immediate Track Stop.
+- Scene launch and current-bar Scene Stop. Scene Stop targets the chosen Scene row, including tracks outside the visible window, and leaves recorded material in Live.
+- Fn gestures for page switching: single press for Track/Session navigation; a double press within 450 ms for the Scene page when no pad intervenes.
+- Track-colour and state-based RGB feedback for empty, armed, playing, queued, recording, and Scene controls.
+- Host-rendered display with protocol v11 acknowledgements and bounded frame updates.
 
-- 8×8 Session 网格，支持 Track/Scene 导航及 Live Session Highlight。
-- Track 页面：录音长度、导航、Arm、Mute、Solo 和立即停止 Track。
-- Scene 页面：触发整条 Live Scene，并在当前小节结束时只停止指定 Scene 行中仍在活动的 Clip。
-- 与 Live 同步的灯光：轨道颜色、Clip 状态、录音、队列、BPM、走带状态及统一音乐相位动画。
-- Fn 手势：单击在基础页与 Track 页之间切换；450 ms 内双击且中间没有 Pad 操作时进入 Scene 页。
+## How it works
 
-## Repository layout / 目录结构
+    Mystrix LaunchApp  -- raw key events over USB MIDI -->  Ableton Live Remote Script
+    Mystrix LEDs       <-- RGB frame updates over USB MIDI -- Live state and host renderer
 
-| Path | English | 中文 |
-| --- | --- | --- |
-| `PythonApps/Launch/` | Mystrix MatrixOS Python App | Mystrix 的 MatrixOS Python App |
-| `RemoteScripts/Launch/` | Ableton Live Remote Script | Ableton Live Remote Script |
-| `RemoteScripts/LaunchHandshake/` | Read-only connection diagnostic Script | 只读连接诊断脚本 |
-| `Tools/` | Local ZIP packaging tools | 本地 ZIP 打包工具 |
-| `tests/launch/` | CPython unit tests and fake-Live tests | CPython 单元测试与模拟 Live 测试 |
-| `docs/` | Bilingual product, setup, development and validation docs | 中英对照的产品、安装、开发与验收文档 |
+The device does not choose pages, interpret clips, or calculate animations. Live remains the state authority. The two halves must come from the same release archive; V1 uses protocol v7 and V2.2.2 uses protocol v11. Do not mix versions.
 
-## Start here / 从这里开始
+## Download and install
 
-1. Read [Installation Guide / 安装指南](docs/INSTALLATION.md).
-2. Read [User Guide / 操作指南](docs/USER_GUIDE.md).
-3. Read [Architecture / 架构说明](docs/ARCHITECTURE.md) before changing protocol or Live behaviour.
-4. Run the local tests described in [Development Guide / 开发指南](docs/DEVELOPMENT.md).
-5. Use [Validation Guide / 验收指南](docs/VALIDATION.md) for Live and Mystrix Pro testing.
+1. Download the paired V2.2.2 ZIP from the [GitHub Releases page](https://github.com/gzproduction95-a11y/LaunchApp/releases).
+2. Follow the [installation guide](docs/INSTALLATION.md) before copying either half.
+3. Install both the Mystrix App and the Ableton Remote Script from that same ZIP.
+4. Select Launch as a Control Surface in Live and choose the Mystrix Pro MIDI ports.
+5. Start with an isolated Live Set and follow the first-check steps in the guide.
 
-## Compatibility / 兼容性
+The device App is installed through the MatrixOS Python App USB serial route. MSC mounting is not the supported installation path. Installation replaces the existing Launch folder; retain a known-good copy if you need rollback.
 
-| Component | Required version | 中文 |
-| --- | --- | --- |
-| Controller | 203 Systems Mystrix Pro | 控制器：203 Systems Mystrix Pro |
-| Firmware | MatrixOS 4.0 nightly | 固件：MatrixOS 4.0 nightly |
-| DAW | Ableton Live 12.4.6 | 宿主：Ableton Live 12.4.6 |
-| Protocol | Launch v7 on both sides | 协议：两端均为 Launch v7 |
+## Documentation
 
-English: **V1** is the public product release name. **v7** is the internal two-way SysEx protocol version and remains unchanged to preserve the verified App/Script compatibility.
+- [Installation](docs/INSTALLATION.md) · [User guide](docs/USER_GUIDE.md)
+- [Architecture](docs/ARCHITECTURE.md) · [Development](docs/DEVELOPMENT.md)
+- [Validation and hardware acceptance](docs/VALIDATION.md)
+- [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [Notices](NOTICE.md) · [License](LICENSE)
 
-中文：**V1** 是对外产品发布名称。**v7** 是内部双端 SysEx 协议版本，为保持已经验收的 App/Script 兼容性而不改变。
+简体中文用户请从 [中文 README](README.zh-CN.md) 开始。
 
-## Build a local release package / 构建本地发布包
+## Compatibility
 
-```bash
-python3 -m unittest discover -s tests/launch -q
-python3 Tools/package_launch.py
-python3 Tools/package_live_handshake_check.py
-```
+| Part | Supported baseline |
+| --- | --- |
+| Controller | 203 Systems Mystrix Pro |
+| Firmware | MatrixOS 4.0 or newer |
+| DAW | Ableton Live 12.4.6 |
+| V2 protocol | v11, on both device and Remote Script |
 
-The generated files stay under `dist/` and are intentionally not tracked by Git. Installation remains a manual action by the user.
+Other MatrixOS and Live versions may work, but have not been claimed as tested here. MatrixOS firmware is not included or modified by this project.
 
-生成文件位于 `dist/`，不会被 Git 跟踪。安装必须由用户手动完成。
+## Contributing and support
 
-## Scope and safety / 范围与安全
+Bug reports and feature requests are welcome through [GitHub Issues](https://github.com/gzproduction95-a11y/LaunchApp/issues). Include the app version, firmware version, Live version, reproduction steps, and relevant logs with private data removed. See [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a change.
 
-LaunchApp is an application project, not a MatrixOS firmware fork. It does not alter MatrixOS core code. Use an isolated Live Set for validation, back up your existing app and Remote Script before replacing them, and stop testing if the controller restarts, MIDI disconnects, an unintended clip stops, or recording content is lost.
+## License and trademarks
 
-LaunchApp 是应用项目，不是 MatrixOS 固件 fork，也不修改 MatrixOS 核心代码。请使用隔离的 Live Set 验收；替换前备份现有 App 和 Remote Script。若设备重启、MIDI 断开、误停 Clip 或录音内容丢失，请停止测试。
+The source is distributed under the MIT License; see [LICENSE](LICENSE). Mystrix, MatrixOS, Ableton, and Live are the property of their respective owners. LaunchApp is an independent project and is not affiliated with or endorsed by 203 Systems or Ableton AG.

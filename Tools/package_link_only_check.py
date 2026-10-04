@@ -1,12 +1,12 @@
-"""Build a standalone, read-only LaunchApp handshake check."""
+"""Build the standalone V2 link-only diagnostic for a controlled A/B test."""
 
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "dist" / "LaunchApp-handshake-check.zip"
-SOURCE = ROOT / "RemoteScripts" / "LaunchHandshakeV2"
-DESTINATION = "Ableton-User-Library/Remote Scripts/LaunchHandshake"
+OUT = ROOT / "dist" / "LaunchApp-link-only-check.zip"
+SOURCE = ROOT / "RemoteScripts" / "LaunchLinkOnly"
+DESTINATION = "Ableton-User-Library/Remote Scripts/LaunchLinkOnly"
 
 
 def main():
@@ -14,10 +14,7 @@ def main():
     with ZipFile(OUT, "w", ZIP_DEFLATED) as bundle:
         for filename in ("__init__.py", "protocol.py"):
             bundle.write(SOURCE / filename, DESTINATION + "/" + filename)
-        bundle.write(
-            ROOT / "docs/PACED_FRAME_DIAGNOSTIC.md",
-            "READ_ME_FIRST.md",
-        )
+        bundle.write(ROOT / "docs/LINK_ONLY_DIAGNOSTIC.md", "READ_ME_FIRST.md")
     print("Wrote {} ({} bytes)".format(OUT.relative_to(ROOT), OUT.stat().st_size))
 
 
