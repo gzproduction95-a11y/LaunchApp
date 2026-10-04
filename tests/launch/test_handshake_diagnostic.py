@@ -399,16 +399,20 @@ class HandshakeDiagnosticTests(unittest.TestCase):
             self.assertFalse(script._scene_action(0, 1))
             self.assertEqual(live.song.scenes[0].fired, 1)
             live.song.scenes[0].is_triggered = False
-            self.assertTrue(script._scene_action(0, 2))
-            task = script._bar_pending[("scene", 0)]
-            self.assertEqual([(target["track_index"], target["slot_index"])
-                              for target in task["targets"]], [(0, 0), (1, 0), (9, 0)])
-            self.assertEqual(live.song.tracks[1].clip_slots[0].clip.is_recording, True)
-            script._process_bar_pending(live.song)
-            self.assertEqual([track.stop_calls for track in live.song.tracks[:2]],
-                             [[], []])
-            live.song.current_song_time = 4.0
-            with patch.object(production, "_clock", return_value=1.5):
+            clock = [100.0]
+            with patch.object(production, "_clock", side_effect=lambda: clock[0]):
+                self.assertTrue(script._scene_action(0, 2))
+                task = script._bar_pending[("scene", 0)]
+                self.assertEqual([(target["track_index"], target["slot_index"])
+                                  for target in task["targets"]],
+                                 [(0, 0), (1, 0), (9, 0)])
+                self.assertEqual(live.song.tracks[1].clip_slots[0].clip.is_recording,
+                                 True)
+                script._process_bar_pending(live.song)
+                self.assertEqual([track.stop_calls for track in live.song.tracks[:2]],
+                                 [[], []])
+                live.song.current_song_time = 4.0
+                clock[0] += 1.5
                 script._process_bar_pending(live.song)
             self.assertEqual(live.song.tracks[0].stop_calls, [False])
             self.assertEqual(live.song.tracks[1].stop_calls, [False])
@@ -579,13 +583,15 @@ class HandshakeDiagnosticTests(unittest.TestCase):
             )
             live.song = RewrappingLiveObject(song, ("song", id(song)))
             script = production.create_instance(live)
-            self.assertTrue(script._scene_action(0, 2))
-            task = script._bar_pending[("scene", 0)]
-            script._process_bar_pending(live.song)
-            self.assertEqual(stop_slot.calls, [])
-            self.assertTrue(script._bar_pending)
-            live.song.current_song_time = 4.0
-            with patch.object(production, "_clock", return_value=1.5):
+            clock = [100.0]
+            with patch.object(production, "_clock", side_effect=lambda: clock[0]):
+                self.assertTrue(script._scene_action(0, 2))
+                task = script._bar_pending[("scene", 0)]
+                script._process_bar_pending(live.song)
+                self.assertEqual(stop_slot.calls, [])
+                self.assertTrue(script._bar_pending)
+                live.song.current_song_time = 4.0
+                clock[0] += 1.5
                 script._process_bar_pending(live.song)
             self.assertEqual(track.stopped_calls, [False])
             self.assertNotIn(("scene", 0), script._bar_pending)
