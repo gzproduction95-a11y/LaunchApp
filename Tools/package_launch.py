@@ -39,7 +39,7 @@ def main(packet_gap_ms=40):
     if not 10 <= int(packet_gap_ms) <= 100:
         raise ValueError("packet gap must be between 10 and 100 ms")
     packet_gap_ms = int(packet_gap_ms)
-    output = OUT_DIR / "LaunchApp-V2.2.2-responsive-{}ms.zip".format(packet_gap_ms)
+    output = OUT_DIR / "LaunchApp-V2.2.2.zip"
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     with ZipFile(output, "w", ZIP_DEFLATED) as bundle:
         for source, target in DEVICE:

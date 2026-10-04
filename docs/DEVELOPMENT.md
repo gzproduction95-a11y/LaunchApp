@@ -19,7 +19,7 @@ The suite covers protocol codecs, v11 host/device parity, frame staging and ackn
 
     python3 Tools/package_launch.py --packet-gap-ms 40
 
-The output is dist/LaunchApp-V2.2.2-responsive-40ms.zip. The packager maps source modules to the filenames expected by MatrixOS and Ableton Live. It does not install files into the device, Live, a User Library, or a Live Set. Generated ZIPs are ignored by Git.
+The output is dist/LaunchApp-V2.2.2.zip. The packager maps source modules to the filenames expected by MatrixOS and Ableton Live. It does not install files into the device, Live, a User Library, or a Live Set. Generated ZIPs are ignored by Git.
 
 ## Change rules
 

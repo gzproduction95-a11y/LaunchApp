@@ -19,7 +19,7 @@
 
     python3 Tools/package_launch.py --packet-gap-ms 40
 
-输出为 dist/LaunchApp-V2.2.2-responsive-40ms.zip。打包器会把源文件映射到 MatrixOS 与 Ableton Live 需要的文件名；不会自动安装到设备、Live、User Library 或 Live Set。生成的 ZIP 不纳入 Git。
+输出为 dist/LaunchApp-V2.2.2.zip。打包器会把源文件映射到 MatrixOS 与 Ableton Live 需要的文件名；不会自动安装到设备、Live、User Library 或 Live Set。生成的 ZIP 不纳入 Git。
 
 ## 修改规则
 
